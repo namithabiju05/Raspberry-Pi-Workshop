@@ -1,0 +1,70 @@
+import RPi.GPIO as GPIO
+import time
+import threading
+import tkinter as tk
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+SERVO_PIN = 18
+TOUCH_PIN = 17
+
+GPIO.setup(SERVO_PIN, GPIO.OUT)
+GPIO.setup(TOUCH_PIN, [GPIO.IN](http://gpio.in/), pull_up_down=GPIO.PUD_DOWN)
+
+pwm = GPIO.PWM(SERVO_PIN, 50)
+pwm.start(0)
+
+def set_servo_angle(angle):
+duty_cycle = 2 + (angle / 18)
+pwm.ChangeDutyCycle(duty_cycle)
+time.sleep(0.5)
+pwm.ChangeDutyCycle(0)
+
+def check_touch():
+while running:
+if GPIO.input(TOUCH_PIN) == GPIO.HIGH:
+status_label.config(text="Touched!", fg="green")
+set_servo_angle(90)
+time.sleep(1)
+set_servo_angle(0)
+time.sleep(0.3)
+else:
+status_label.config(text="Waiting for touch...", fg="red")
+time.sleep(0.1)
+
+def on_start():
+global running
+running = True
+threading.Thread(target=check_touch, daemon=True).start()
+
+def on_stop():
+global running
+running = False
+status_label.config(text="Stopped", fg="black")
+GPIO.output(SERVO_PIN, GPIO.LOW)
+
+def on_exit():
+global running
+running = False
+pwm.stop()
+GPIO.cleanup()
+root.destroy()
+
+root = [tk.Tk](http://tk.tk/)()
+root.title("Servo Touch Controller")
+
+status_label = tk.Label(root, text="Waiting for touch...", font=("Arial", 14), fg="red")
+status_label.pack(pady=10)
+
+start_button = tk.Button(root, text="Start", command=on_start, width=15)
+start_button.pack(pady=5)
+
+stop_button = tk.Button(root, text="Stop", command=on_stop, width=15)
+stop_button.pack(pady=5)
+
+exit_button = tk.Button(root, text="Exit", command=on_exit, width=15, bg="lightcoral")
+exit_button.pack(pady=10)
+
+root.protocol("WM_DELETE_WINDOW", on_exit)
+root.mainloop()
