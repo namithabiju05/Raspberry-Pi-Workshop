@@ -1,0 +1,35 @@
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+SERVO_PIN = 18
+TOUCH_PIN = 17
+
+GPIO.setup(SERVO_PIN, GPIO.OUT)
+GPIO.setup(TOUCH_PIN, [GPIO.IN](http://gpio.in/), pull_up_down=GPIO.PUD_DOWN)
+
+pwm = GPIO.PWM(SERVO_PIN, 50)
+pwm.start(0)
+
+def set_servo_angle(angle):
+duty_cycle = 2 + (angle / 18)
+pwm.ChangeDutyCycle(duty_cycle)
+time.sleep(0.5)  # allow servo to move
+pwm.ChangeDutyCycle(0)  # stop sending signal
+
+try:
+print("Waiting for touch...")
+while True:
+if GPIO.input(TOUCH_PIN) == GPIO.HIGH:
+print("Touched!")
+set_servo_angle(90)  # move servo to 90 degrees
+time.sleep(1)
+set_servo_angle(0)   # return servo to 0 degrees
+time.sleep(0.2)      # debounce delay
+
+except KeyboardInterrupt:
+print("Exiting program...")
+pwm.stop()
+GPIO.cleanup()
